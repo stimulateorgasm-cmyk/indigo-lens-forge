@@ -17,11 +17,12 @@ export function IndigoLogo({ size = 32 }: { size?: number }) {
       <circle cx="50" cy="50" r="49" fill="url(#indigo-logo-grad)" />
       <text
         x="50"
-        y="54"
+        y="50"
         textAnchor="middle"
-        dominantBaseline="central"
+        dominantBaseline="middle"
+        dy="0.08em"
         fill="white"
-        fontSize="40"
+        fontSize="38"
         fontWeight={700}
         fontFamily="Comfortaa, Inter, sans-serif"
         letterSpacing="-1"
