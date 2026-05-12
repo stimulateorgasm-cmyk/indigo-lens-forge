@@ -89,6 +89,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "INDIGO — Психология бизнеса" },
+      { name: "description", content: "Indigo Vision crafts premium B2B SaaS landing pages with cinematic, ultra-dark visuals and glassmorphism." },
+      { property: "og:description", content: "Indigo Vision crafts premium B2B SaaS landing pages with cinematic, ultra-dark visuals and glassmorphism." },
+      { name: "twitter:description", content: "Indigo Vision crafts premium B2B SaaS landing pages with cinematic, ultra-dark visuals and glassmorphism." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/780d00cd-04f3-444b-8180-7559cf935d8d/id-preview-19095574--6728274e-1899-44b5-8a1e-e8cb922f7a60.lovable.app-1778582348874.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/780d00cd-04f3-444b-8180-7559cf935d8d/id-preview-19095574--6728274e-1899-44b5-8a1e-e8cb922f7a60.lovable.app-1778582348874.png" },
     ],
     links: [
       {
