@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Toaster } from "sonner";
+import ogCover from "@/assets/og-cover.jpg";
 import { NebulaBackground } from "@/components/landing/NebulaBackground";
 import { SiteHeader } from "@/components/landing/SiteHeader";
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/")({
         content:
           "Разблокируйте скрытую прибыль. Программа стабилизации команды и лидера.",
       },
-      { property: "og:image", content: "/src/assets/og-cover.jpg" },
+      { property: "og:image", content: ogCover },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
