@@ -20,7 +20,7 @@ export function SiteHeader() {
           href="#contact"
           className="hidden items-center rounded-full hairline px-4 py-2 text-sm text-foreground transition-colors hover:bg-[color-mix(in_oklab,white_6%,transparent)] md:inline-flex"
         >
-          Получить разбор
+          Записаться
         </a>
       </div>
     </header>
