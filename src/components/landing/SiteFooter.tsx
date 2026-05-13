@@ -1,17 +1,67 @@
+import { Mail, MessageCircle, Send } from "lucide-react";
 import { IndigoLogo } from "./IndigoLogo";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-[color-mix(in_oklab,white_8%,transparent)] px-6 py-10">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
-        <div className="flex items-center gap-3">
-          <IndigoLogo size={24} />
-          <span>Indigo Lab · Психология бизнеса</span>
+    <footer className="border-t border-[color-mix(in_oklab,white_8%,transparent)] px-6 py-12">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid gap-10 md:grid-cols-3">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <IndigoLogo size={32} />
+              <span className="text-sm font-medium tracking-tight text-foreground">
+                Indigo Lab
+                <span className="ml-2 text-muted-foreground">· Психология бизнеса</span>
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Indigo Method — доказательная программа развития команд и руководителей.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground">Навигация</h4>
+            <nav className="flex flex-col gap-2 text-sm">
+              <a href="#method" className="text-muted-foreground transition-colors hover:text-foreground">Метод</a>
+              <a href="#research" className="text-muted-foreground transition-colors hover:text-foreground">Исследования</a>
+              <a href="#lead-top" className="text-muted-foreground transition-colors hover:text-foreground">Записаться</a>
+            </nav>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground">Контакты</h4>
+            <div className="flex flex-col gap-2 text-sm">
+              <a
+                href="mailto:info@indigolab.pro"
+                className="inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Mail className="h-4 w-4" />
+                info@indigolab.pro
+              </a>
+              <a
+                href="https://t.me/andreyIndigo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Send className="h-4 w-4" />
+                Telegram Андрея Индиго
+              </a>
+              <a
+                href="https://t.me/coachfor1mln"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Открытый чат Indigo Lab
+              </a>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-6">
-          <a href="#contact" className="transition-colors hover:text-foreground">Контакт</a>
-          <a href="#problem" className="transition-colors hover:text-foreground">Метод</a>
-          <span>© {new Date().getFullYear()}</span>
+
+        <div className="mt-10 border-t border-[color-mix(in_oklab,white_8%,transparent)] pt-6 text-sm text-muted-foreground">
+          © {new Date().getFullYear()} Indigo Lab. Все права защищены.
         </div>
       </div>
     </footer>
