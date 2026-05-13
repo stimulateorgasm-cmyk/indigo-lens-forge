@@ -13,8 +13,6 @@ export function SiteHeader() {
         </a>
         <nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
           <a className="transition-colors hover:text-foreground" href="#method">Метод</a>
-          <a className="transition-colors hover:text-foreground" href="#amplitude">Амплитуда</a>
-          <a className="transition-colors hover:text-foreground" href="#testimonial">Отзыв</a>
           <a className="transition-colors hover:text-foreground" href="#research">Исследования</a>
         </nav>
         <a

@@ -31,10 +31,12 @@ export function LeadFormSection({ id, variant = "top" }: LeadFormSectionProps) {
     variant === "top" ? "Бесплатная консультация" : "Готовы обсудить?";
   const title =
     variant === "top"
-      ? "Записаться на консультацию"
+      ? "Давайте обсудим ваши зоны роста"
       : "Оставьте заявку — мы свяжемся";
   const subtitle =
-    "Бесплатная 45-минутная консультация с партнёром Indigo Lab. Обсудим запрос и подберём формат работы.";
+    variant === "top"
+      ? "Бесплатная 45-минутная сессия с представителем Indigo Lab."
+      : "Бесплатная 45-минутная сессия с партнёром Indigo Lab. Обсудим запрос и подберём формат работы.";
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -145,7 +147,7 @@ export function LeadFormSection({ id, variant = "top" }: LeadFormSectionProps) {
 
               <div className="pt-6">
                 <GradientButton type="submit" disabled={submitting} className="w-full">
-                  {submitting ? "Отправляем…" : "Записаться на консультацию"}
+                  {submitting ? "Отправляем…" : "Записаться"}
                 </GradientButton>
               </div>
             </form>
