@@ -4,8 +4,11 @@ import ogCover from "@/assets/og-cover.jpg";
 import { NebulaBackground } from "@/components/landing/NebulaBackground";
 import { SiteHeader } from "@/components/landing/SiteHeader";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { SplitRealitySection } from "@/components/landing/SplitRealitySection";
-import { ConversionSection } from "@/components/landing/ConversionSection";
+import { LeadFormSection } from "@/components/landing/LeadFormSection";
+import { AmplitudeSection } from "@/components/landing/AmplitudeSection";
+import { MethodAdvantagesSection } from "@/components/landing/MethodAdvantagesSection";
+import { TestimonialSection } from "@/components/landing/TestimonialSection";
+import { ResearchSection } from "@/components/landing/ResearchSection";
 import { SiteFooter } from "@/components/landing/SiteFooter";
 
 export const Route = createFileRoute("/")({
@@ -37,8 +40,12 @@ function Index() {
       <NebulaBackground />
       <SiteHeader />
       <HeroSection />
-      <SplitRealitySection />
-      <ConversionSection />
+      <LeadFormSection id="lead-top" variant="top" />
+      <AmplitudeSection />
+      <MethodAdvantagesSection />
+      <TestimonialSection />
+      <ResearchSection />
+      <LeadFormSection id="lead-bottom" variant="bottom" />
       <SiteFooter />
       <Toaster
         theme="dark"
