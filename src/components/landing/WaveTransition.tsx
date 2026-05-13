@@ -20,22 +20,37 @@ export function WaveTransition() {
   const H = 240;
   const mid = H / 2;
 
-  // Turbulent path (jittered)
-  const turbPoints: string[] = [];
-  for (let x = 0; x <= 600; x += 12) {
-    const noise =
-      Math.sin(x * 0.08) * 30 +
-      Math.sin(x * 0.21 + 1.3) * 22 +
-      Math.sin(x * 0.43 + 2.1) * 14;
-    turbPoints.push(`${x},${mid + noise}`);
-  }
-  const turbPath = "M " + turbPoints.join(" L ");
+  // Deterministic pseudo-random for sharp chaos
+  const rand = (seed: number) => {
+    const s = Math.sin(seed * 9301 + 49297) * 233280;
+    return s - Math.floor(s);
+  };
 
-  // Smooth sine
+  // Sharp jagged turbulent paths — multiple layers with different seeds
+  const buildTurb = (seed: number, amp: number, step: number) => {
+    const pts: string[] = [];
+    for (let x = 0, i = 0; x <= 600; x += step, i++) {
+      const y = mid + (rand(seed + i) - 0.5) * 2 * amp;
+      pts.push(`${x},${y}`);
+    }
+    return "M " + pts.join(" L ");
+  };
+  const turbLayers = [
+    { d: buildTurb(1, 90, 48), w: 2 },
+    { d: buildTurb(7, 75, 56), w: 1.5 },
+    { d: buildTurb(13, 85, 44), w: 1.25 },
+    { d: buildTurb(21, 70, 60), w: 1 },
+  ];
+
+  // Stable rising trend with subtle ripple (amplitude side)
+  const startY = mid + 50;
+  const endY = mid - 80;
   const sinePoints: string[] = [];
   for (let x = 600; x <= W; x += 6) {
-    const y = mid + Math.sin((x - 600) * 0.025) * 60;
-    sinePoints.push(`${x},${y}`);
+    const t = (x - 600) / (W - 600);
+    const baseline = startY + (endY - startY) * t;
+    const ripple = Math.sin((x - 600) * 0.05) * 5;
+    sinePoints.push(`${x},${baseline + ripple}`);
   }
   const sinePath = "M " + sinePoints.join(" L ");
 
@@ -65,16 +80,17 @@ export function WaveTransition() {
           </filter>
         </defs>
 
-        {/* Turbulent layered paths */}
-        {[0, 8, -6, 14, -12].map((off, i) => (
+        {/* Turbulent jagged layers */}
+        {turbLayers.map((layer, i) => (
           <path
             key={i}
-            d={turbPath}
+            d={layer.d}
             fill="none"
             stroke="url(#painGrad)"
-            strokeWidth={1 + (i % 2)}
-            strokeOpacity={active ? 0.55 - i * 0.08 : 0}
-            transform={`translate(0 ${off})`}
+            strokeWidth={layer.w}
+            strokeLinejoin="miter"
+            strokeLinecap="square"
+            strokeOpacity={active ? 0.7 - i * 0.12 : 0}
             style={{
               transition: `stroke-opacity 1.2s ease ${i * 0.08}s`,
             }}
@@ -119,7 +135,8 @@ export function WaveTransition() {
         {active &&
           Array.from({ length: 6 }).map((_, i) => {
             const x = 620 + i * 90;
-            const y = mid + Math.sin((x - 600) * 0.025) * 60;
+            const t = (x - 600) / (W - 600);
+            const y = startY + (endY - startY) * t + Math.sin((x - 600) * 0.05) * 5;
             return (
               <circle
                 key={i}
