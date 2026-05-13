@@ -12,13 +12,14 @@ export function SiteHeader() {
           </span>
         </a>
         <nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
-          <a className="transition-colors hover:text-foreground" href="#problem">Проблема</a>
-          <a className="transition-colors hover:text-foreground" href="#solution">Решение</a>
-          <a className="transition-colors hover:text-foreground" href="#contact">Контакт</a>
+          <a className="transition-colors hover:text-foreground" href="#method">Метод</a>
+          <a className="transition-colors hover:text-foreground" href="#amplitude">Амплитуда</a>
+          <a className="transition-colors hover:text-foreground" href="#testimonial">Отзыв</a>
+          <a className="transition-colors hover:text-foreground" href="#research">Исследования</a>
         </nav>
         <a
-          href="#contact"
-          className="hidden items-center rounded-full hairline px-4 py-2 text-sm text-foreground transition-colors hover:bg-[color-mix(in_oklab,white_6%,transparent)] md:inline-flex"
+          href="#lead-top"
+          className="inline-flex items-center rounded-full hairline px-4 py-2 text-sm text-foreground transition-colors hover:bg-[color-mix(in_oklab,white_6%,transparent)]"
         >
           Записаться
         </a>
