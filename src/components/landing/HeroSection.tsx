@@ -1,16 +1,17 @@
-import { IPadFrame } from "./IPadFrame";
-import { ChevronDown } from "lucide-react";
+import { HeroVideo } from "./HeroVideo";
 
 export function HeroSection() {
   return (
     <section
       id="top"
-      className="relative isolate flex min-h-screen flex-col items-center justify-center px-6 pb-24 pt-40 md:pt-48"
+      className="relative isolate flex flex-col items-center justify-center px-6 pb-16 pt-36 md:pt-44"
     >
       <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
-        <span className="mb-8 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--magenta)] shadow-[0_0_12px_var(--magenta)]" />
-          Новый стандарт лидерства
+        <span className="mb-8 inline-flex max-w-3xl items-center gap-2 rounded-full glass px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground md:text-xs">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--magenta)] shadow-[0_0_12px_var(--magenta)]" />
+          <span className="text-balance">
+            Новый уровень эмоциональной устойчивости и адаптивности вашей команды
+          </span>
         </span>
 
         <h1
@@ -40,16 +41,8 @@ export function HeroSection() {
         </p>
       </div>
 
-      <div className="mt-16 w-full md:mt-20">
-        <IPadFrame />
-      </div>
-
-      <div className="mt-16 flex flex-col items-center text-xs uppercase tracking-[0.3em] text-muted-foreground">
-        <span>scroll</span>
-        <ChevronDown
-          className="mt-2 h-4 w-4 opacity-60"
-          style={{ animation: "float-y 2.4s ease-in-out infinite" }}
-        />
+      <div className="mt-14 w-full md:mt-20">
+        <HeroVideo />
       </div>
     </section>
   );
