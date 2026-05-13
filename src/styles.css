@@ -182,3 +182,6 @@
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+html { scroll-behavior: smooth; }
+section[id] { scroll-margin-top: 96px; }
