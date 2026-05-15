@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { submitLead } from "@/lib/lead.functions";
 import { GradientButton } from "./GradientButton";
 import { FloatingLabelInput } from "./FloatingLabelInput";
 
@@ -26,6 +28,7 @@ export function LeadFormSection({ id, variant = "top" }: LeadFormSectionProps) {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [consent, setConsent] = useState(false);
+  const submit = useServerFn(submitLead);
 
   const eyebrow =
     variant === "top" ? "Бесплатная консультация" : "Готовы обсудить?";
@@ -38,7 +41,7 @@ export function LeadFormSection({ id, variant = "top" }: LeadFormSectionProps) {
       ? "Бесплатная 45-минутная сессия с представителем Indigo Lab."
       : "Бесплатная 45-минутная сессия с партнёром Indigo Lab. Обсудим запрос и подберём формат работы.";
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
@@ -58,14 +61,33 @@ export function LeadFormSection({ id, variant = "top" }: LeadFormSectionProps) {
     }
     setErrors({});
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      form.reset();
-      setConsent(false);
-      toast.success("Заявка принята", {
-        description: "Свяжемся в течение одного рабочего дня.",
+    try {
+      const result = await submit({
+        data: {
+          name: parsed.data.name,
+          contact: parsed.data.contact,
+          variant,
+        },
       });
-    }, 600);
+      if (result?.ok) {
+        form.reset();
+        setConsent(false);
+        toast.success("Заявка принята", {
+          description: "Свяжемся в течение одного рабочего дня.",
+        });
+      } else {
+        toast.error("Не удалось отправить заявку", {
+          description: "Попробуйте ещё раз или напишите нам в Telegram.",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Не удалось отправить заявку", {
+        description: "Попробуйте ещё раз или напишите нам в Telegram.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
