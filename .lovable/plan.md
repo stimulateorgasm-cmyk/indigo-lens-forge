@@ -1,49 +1,67 @@
-## Проблема
+# План: Админка с аналитикой для Indigo Lab
 
-В `src/components/landing/SiteFooter.tsx` ссылки ведут на несуществующие якоря (`#contact`, `#problem`) — поэтому кликать «нечем». Нужно привести их в соответствие с теми же якорями, что и в шапке.
+## Контекст и решение по «соединить»
 
-Параллельно из проекта **Healthful Path Conference** можно подтянуть подтверждённые контактные данные Indigo Lab — они там уже используются в продакшене.
+В проекте «Healthful Path Conference» админка (`AdminCrm.tsx`) работает поверх **своего** Supabase-бэкенда с таблицами тестов и регистраций. Прямо «подключиться к той же админке» из этого проекта нельзя — у Indigo Lab сейчас бэкенда нет вообще (заявки только улетают в Telegram через server function, нигде не сохраняются).
 
-## Данные из соседнего проекта
+Поэтому делаем **аналогичную админку**, но на собственном бэкенде Indigo Lab. По духу и UX — как в Healthful Path: воронка, источники, таблица заявок, фильтры, защищённый вход.
 
-Из `src/components/Footer.tsx` и `src/components/Experts.tsx`:
+## Что появится у пользователя
 
-- Email: `info@indigolab.pro`
-- Telegram Андрея Индиго: `@andreyIndigo` → `https://t.me/andreyIndigo`
-- Открытый чат специалистов Indigo Lab: `https://t.me/coachfor1mln`
-- Бренд-строка: «Indigo Lab · Психология бизнеса» (у нас) vs «Научно обоснованные инструменты…» (там — для конференции, нам не подходит, оставляем нашу)
-- Логотип `IndigoLogo` уже одинаковый в обоих проектах
+1. **Страница `/admin`** — закрыта паролем (ключ из URL `?key=...` или ввод в форму, как в Healthful Path).
+2. **Дашборд аналитики:**
+   - KPI-карточки: всего визитов, всего заявок, конверсия визит→заявка, заявки за 7/30 дней.
+   - Воронка: визиты → скролл до формы → отправлена заявка.
+   - Источники трафика: разбивка по `utm_source` / `utm_medium` / `utm_campaign` + «прямые/реферальные».
+   - График заявок по дням (последние 30 дней).
+   - Топ страниц-источников заявки (форма сверху vs снизу).
+3. **Таблица заявок** с фильтрами (период, источник, форма) и поиском по имени/контакту, экспорт в CSV.
+4. **Telegram-уведомления** продолжают приходить как сейчас.
 
-Эти данные используем как реальные контакты в подвале вместо «мёртвых» ссылок.
+## Что меняем в проекте
 
-## Что меняем — `src/components/landing/SiteFooter.tsx`
+### Бэкенд (Lovable Cloud)
+Включаем Lovable Cloud (Supabase под капотом). Создаём миграциями:
 
-Структура подвала: 3 колонки (как в Healthful Path), на мобайле — стек.
+- `leads` — заявки: `id`, `name`, `contact`, `variant` (top/bottom), `utm_source`, `utm_medium`, `utm_campaign`, `referrer`, `landing_path`, `user_agent`, `created_at`.
+- `page_visits` — визиты: `id`, `session_id`, `path`, `referrer`, `utm_*`, `user_agent`, `created_at`.
+- `user_roles` + enum `app_role` (`admin`) и security-definer `has_role()` — по правилам Lovable.
+- RLS: insert разрешён публично только для `leads` и `page_visits` (это лендинг без логина); select — только админам через `has_role()`.
 
-**Колонка 1 — бренд**
-- `IndigoLogo size={32}` + «Indigo Lab · Психология бизнеса»
-- Короткое описание: «Indigo Method — доказательная программа развития команд и руководителей.»
+### UTM-трекинг на фронте
+- Хук `useUtmCapture`: при первом заходе читает `utm_*` из query, кладёт в `sessionStorage` (живёт до закрытия вкладки) + первый `referrer` и `landing_path`.
+- Хук `useTrackPageVisit`: один раз за сессию шлёт визит в server fn `trackVisit` (insert в `page_visits`).
 
-**Колонка 2 — навигация (синхронно с шапкой)**
-- «Метод» → `#method`
-- «Исследования» → `#research`
-- «Записаться» → `#lead-top`
+### Сохранение заявок
+- `submitLead` (уже есть) расширяем: помимо отправки в Telegram, делает insert в `leads` с UTM/referrer/landing_path. Telegram-сообщение дополняется строкой «Источник: utm_source / utm_medium / utm_campaign».
+- `LeadFormSection` начинает передавать UTM-контекст в `submit({ data: ... })`.
 
-**Колонка 3 — контакты**
-- `Mail` иконка + `info@indigolab.pro` (`mailto:`)
-- `MessageCircle` иконка + «Telegram Андрея Индиго» → `https://t.me/andreyIndigo` (target=_blank, rel=noopener)
-- `MessageCircle` иконка + «Открытый чат Indigo Lab» → `https://t.me/coachfor1mln`
-
-**Нижняя полоска**
-- `© {year} Indigo Lab. Все права защищены.`
-- Убираем ссылки «Политика конфиденциальности» / «Условия использования» (страниц нет — иначе снова мёртвые ссылки). Если позже захотим — добавим, когда появятся роуты.
-
-Стилистика — текущая тёмная тема: `text-muted-foreground`, hover `text-foreground`, `border-[color-mix(in_oklab,white_8%,transparent)]`, `glass`/hairline опционально. Иконки из `lucide-react` (`Mail`, `MessageCircle`).
+### Админка
+- Маршрут `src/routes/admin.tsx` (TanStack file route).
+- Server functions с `requireSupabaseAuth` + проверкой роли `admin`:
+  - `getAdminStats` — агрегаты для KPI/воронки/источников/графика.
+  - `getAdminLeads` — список заявок с фильтрами и пагинацией.
+- UI: shadcn `Card`, `Table`, `Badge`, `Select`, `Input`, `Tabs`. Графики — `recharts` (уже в стеке).
+- Вход: страница логина по email/паролю (Supabase Auth). Первый админ назначается вручную INSERT-ом в `user_roles`.
 
 ## Технические детали
 
-- Файл правим один: `src/components/landing/SiteFooter.tsx`.
-- Импортируем `Mail`, `MessageCircle` из `lucide-react`.
-- Внешние ссылки: `target="_blank" rel="noopener noreferrer"`.
-- Внутренние якоря используют уже добавленный `scroll-behavior: smooth` и `scroll-margin-top` из `src/styles.css` — отдельных правок CSS не нужно.
-- Других файлов не трогаем.
+- Telegram-секреты (`TELEGRAM_NOTIFY_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`) уже подключены — не трогаем.
+- Никаких Edge Functions: вся серверная логика — `createServerFn` в `src/lib/*.functions.ts`.
+- RLS: `leads.insert` и `page_visits.insert` — `to anon, authenticated with check (true)`; select — `using (public.has_role(auth.uid(), 'admin'))`.
+- Защита `/admin`: layout `_authenticated` + проверка роли в server fn (двойной барьер: Supabase Auth + `has_role`).
+- Экспорт CSV — на клиенте из загруженного списка.
+
+## Этапы реализации
+
+1. Включить Lovable Cloud, создать таблицы и RLS.
+2. UTM-хуки + `trackVisit` server fn + вызов на главной.
+3. Расширить `submitLead`: insert в `leads` + UTM в Telegram-сообщении.
+4. Supabase Auth (email/пароль) + страница `/login`, layout `_authenticated`, роль `admin`.
+5. `/admin`: KPI, воронка, источники, график, таблица с фильтрами, экспорт CSV.
+6. Назначить вашего пользователя админом (после первой регистрации).
+
+## Открытые вопросы
+
+- Логин в админку: **email + пароль** (как в Supabase Auth) или достаточно простого пароля по URL-ключу как в Healthful Path? Рекомендую email+пароль — безопаснее и масштабируемее.
+- Период хранения визитов — оставляем бессрочно или чистим старше 90 дней?
