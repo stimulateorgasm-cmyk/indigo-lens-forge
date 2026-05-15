@@ -10,6 +10,7 @@ import { MethodAdvantagesSection } from "@/components/landing/MethodAdvantagesSe
 import { TestimonialSection } from "@/components/landing/TestimonialSection";
 import { ResearchSection } from "@/components/landing/ResearchSection";
 import { SiteFooter } from "@/components/landing/SiteFooter";
+import { useTrackPageVisit } from "@/hooks/useTrackPageVisit";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  useTrackPageVisit();
   return (
     <main className="relative overflow-x-hidden">
       <NebulaBackground />

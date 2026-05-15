@@ -3,6 +3,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { submitLead } from "@/lib/lead.functions";
+import { getUtm } from "@/lib/utm";
 import { GradientButton } from "./GradientButton";
 import { FloatingLabelInput } from "./FloatingLabelInput";
 
@@ -62,11 +63,23 @@ export function LeadFormSection({ id, variant = "top" }: LeadFormSectionProps) {
     setErrors({});
     setSubmitting(true);
     try {
+      const utm = getUtm();
       const result = await submit({
         data: {
           name: parsed.data.name,
           contact: parsed.data.contact,
           variant,
+          utm_source: utm.utm_source,
+          utm_medium: utm.utm_medium,
+          utm_campaign: utm.utm_campaign,
+          utm_term: utm.utm_term,
+          utm_content: utm.utm_content,
+          referrer: utm.referrer,
+          landing_path: utm.landing_path,
+          user_agent:
+            typeof navigator !== "undefined"
+              ? navigator.userAgent.slice(0, 500)
+              : null,
         },
       });
       if (result?.ok) {
