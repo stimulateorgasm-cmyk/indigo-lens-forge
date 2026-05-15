@@ -1,24 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createMiddleware } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-async function ensureAdmin(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (error) throw new Error("Role check failed");
-  if (!data) throw new Error("Forbidden");
-}
+const requireAdminPassword = createMiddleware({ type: "function" }).server(
+  async ({ next }) => {
+    const provided = getRequestHeader("x-admin-key") ?? "";
+    const expected = process.env.ADMIN_PASSWORD ?? "";
+    if (!expected) throw new Error("ADMIN_PASSWORD not configured");
+    if (
+      provided.length === 0 ||
+      provided.length !== expected.length
+    ) {
+      throw new Error("Forbidden");
+    }
+    const { timingSafeEqual } = await import("crypto");
+    if (!timingSafeEqual(Buffer.from(provided), Buffer.from(expected))) {
+      throw new Error("Forbidden");
+    }
+    return next();
+  },
+);
 
 export const getAdminStats = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await ensureAdmin(context.userId);
-
+  .middleware([requireAdminPassword])
+  .handler(async () => {
     const now = new Date();
     const since30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const since7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -118,11 +125,9 @@ const leadsInput = z.object({
 });
 
 export const getAdminLeads = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAdminPassword])
   .inputValidator((input) => leadsInput.parse(input))
-  .handler(async ({ context, data }) => {
-    await ensureAdmin(context.userId);
-
+  .handler(async ({ data }) => {
     let q = supabaseAdmin
       .from("leads")
       .select(
