@@ -18,7 +18,7 @@ import {
   YAxis,
 } from "recharts";
 import { LogOut, RefreshCw, Download, Search } from "lucide-react";
-import { getAdminStats, getAdminLeads } from "@/lib/admin.functions";
+import { getAdminStats, getAdminLeads, logoutAdmin, verifyAdminSession } from "@/lib/admin.functions";
 import { ADMIN_KEY_STORAGE } from "@/lib/admin-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Toaster, toast } from "sonner";
-import { logoutAdmin, verifyAdminSession } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
