@@ -1,67 +1,38 @@
-# План: Админка с аналитикой для Indigo Lab
+## Что сделаем
 
-## Контекст и решение по «соединить»
+Заменим текущую авторизацию через Supabase Auth (email + Google OAuth + таблица `user_roles`) на простой ввод пароля — как в проекте Healthful Path Conference.
 
-В проекте «Healthful Path Conference» админка (`AdminCrm.tsx`) работает поверх **своего** Supabase-бэкенда с таблицами тестов и регистраций. Прямо «подключиться к той же админке» из этого проекта нельзя — у Indigo Lab сейчас бэкенда нет вообще (заявки только улетают в Telegram через server function, нигде не сохраняются).
+## Почему /login сейчас 404
 
-Поэтому делаем **аналогичную админку**, но на собственном бэкенде Indigo Lab. По духу и UX — как в Healthful Path: воронка, источники, таблица заявок, фильтры, защищённый вход.
+На опубликованном `b2b.indigolab.pro` ещё крутится старая сборка (без роутов `/login` и `/admin`). После того как переделаем вход и опубликуем заново — 404 уйдёт. В превью `id-preview--*.lovable.app` страница уже доступна.
 
-## Что появится у пользователя
+## План
 
-1. **Страница `/admin`** — закрыта паролем (ключ из URL `?key=...` или ввод в форму, как в Healthful Path).
-2. **Дашборд аналитики:**
-   - KPI-карточки: всего визитов, всего заявок, конверсия визит→заявка, заявки за 7/30 дней.
-   - Воронка: визиты → скролл до формы → отправлена заявка.
-   - Источники трафика: разбивка по `utm_source` / `utm_medium` / `utm_campaign` + «прямые/реферальные».
-   - График заявок по дням (последние 30 дней).
-   - Топ страниц-источников заявки (форма сверху vs снизу).
-3. **Таблица заявок** с фильтрами (период, источник, форма) и поиском по имени/контакту, экспорт в CSV.
-4. **Telegram-уведомления** продолжают приходить как сейчас.
+1. **Секрет `ADMIN_PASSWORD`** — добавим через Lovable Cloud secrets, спросим у вас значение.
 
-## Что меняем в проекте
+2. **`/login`** — оставим один input «Пароль». При сабмите кладём пароль в `sessionStorage` (`indigo_admin_key`) и редиректим в `/admin`. Никаких email/Google/Supabase Auth.
 
-### Бэкенд (Lovable Cloud)
-Включаем Lovable Cloud (Supabase под капотом). Создаём миграциями:
+3. **`/admin`** — вместо `useAuth()` (Supabase сессия) проверяем наличие ключа в `sessionStorage`. Если нет — редирект на `/login`. Кнопка «Выйти» чистит ключ.
 
-- `leads` — заявки: `id`, `name`, `contact`, `variant` (top/bottom), `utm_source`, `utm_medium`, `utm_campaign`, `referrer`, `landing_path`, `user_agent`, `created_at`.
-- `page_visits` — визиты: `id`, `session_id`, `path`, `referrer`, `utm_*`, `user_agent`, `created_at`.
-- `user_roles` + enum `app_role` (`admin`) и security-definer `has_role()` — по правилам Lovable.
-- RLS: insert разрешён публично только для `leads` и `page_visits` (это лендинг без логина); select — только админам через `has_role()`.
+4. **Server functions (`src/lib/admin.functions.ts`)** — убираем `requireSupabaseAuth` и `ensureAdmin(userId)`. Вместо этого новый middleware `requireAdminPassword`: читает заголовок `Authorization: Bearer <key>` и сравнивает с `process.env.ADMIN_PASSWORD` через `timingSafeEqual`. Клиент шлёт ключ через кастомный `functionMiddleware` (читает из `sessionStorage`).
 
-### UTM-трекинг на фронте
-- Хук `useUtmCapture`: при первом заходе читает `utm_*` из query, кладёт в `sessionStorage` (живёт до закрытия вкладки) + первый `referrer` и `landing_path`.
-- Хук `useTrackPageVisit`: один раз за сессию шлёт визит в server fn `trackVisit` (insert в `page_visits`).
+5. **Чистка** — удаляем теперь ненужное:
+   - `src/hooks/useAuth.ts`
+   - таблицу `user_roles` и функцию `has_role()` (миграцией `DROP`)
+   - привязку `attachSupabaseAuth` в `src/start.ts` заменяем на новый attacher с админ-паролем
+   - `supabase--configure_social_auth` Google остаётся включённым на бэке, но не используется — можно отключить позже
 
-### Сохранение заявок
-- `submitLead` (уже есть) расширяем: помимо отправки в Telegram, делает insert в `leads` с UTM/referrer/landing_path. Telegram-сообщение дополняется строкой «Источник: utm_source / utm_medium / utm_campaign».
-- `LeadFormSection` начинает передавать UTM-контекст в `submit({ data: ... })`.
+6. **Lead-форма и трекинг визитов** — не трогаем. Они пишутся анонимно, RLS уже разрешает `INSERT` всем.
 
-### Админка
-- Маршрут `src/routes/admin.tsx` (TanStack file route).
-- Server functions с `requireSupabaseAuth` + проверкой роли `admin`:
-  - `getAdminStats` — агрегаты для KPI/воронки/источников/графика.
-  - `getAdminLeads` — список заявок с фильтрами и пагинацией.
-- UI: shadcn `Card`, `Table`, `Badge`, `Select`, `Input`, `Tabs`. Графики — `recharts` (уже в стеке).
-- Вход: страница логина по email/паролю (Supabase Auth). Первый админ назначается вручную INSERT-ом в `user_roles`.
+7. **Публикация** — после правок вы публикуете, и `b2b.indigolab.pro/login` начинает работать.
 
 ## Технические детали
 
-- Telegram-секреты (`TELEGRAM_NOTIFY_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`) уже подключены — не трогаем.
-- Никаких Edge Functions: вся серверная логика — `createServerFn` в `src/lib/*.functions.ts`.
-- RLS: `leads.insert` и `page_visits.insert` — `to anon, authenticated with check (true)`; select — `using (public.has_role(auth.uid(), 'admin'))`.
-- Защита `/admin`: layout `_authenticated` + проверка роли в server fn (двойной барьер: Supabase Auth + `has_role`).
-- Экспорт CSV — на клиенте из загруженного списка.
-
-## Этапы реализации
-
-1. Включить Lovable Cloud, создать таблицы и RLS.
-2. UTM-хуки + `trackVisit` server fn + вызов на главной.
-3. Расширить `submitLead`: insert в `leads` + UTM в Telegram-сообщении.
-4. Supabase Auth (email/пароль) + страница `/login`, layout `_authenticated`, роль `admin`.
-5. `/admin`: KPI, воронка, источники, график, таблица с фильтрами, экспорт CSV.
-6. Назначить вашего пользователя админом (после первой регистрации).
+- Сравнение пароля: `crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(process.env.ADMIN_PASSWORD!))` с защитой от несовпадения длин.
+- Поддержим вход по URL `?key=...` (как в РПП): если параметр есть — кладём в storage и сразу чистим из URL.
+- Тип контекста серверных функций: `{ adminKey: string }` — `userId` больше не нужен.
 
 ## Открытые вопросы
 
-- Логин в админку: **email + пароль** (как в Supabase Auth) или достаточно простого пароля по URL-ключу как в Healthful Path? Рекомендую email+пароль — безопаснее и масштабируемее.
-- Период хранения визитов — оставляем бессрочно или чистим старше 90 дней?
+1. Какой пароль ставим в `ADMIN_PASSWORD`? (придумайте, либо сгенерирую случайный)
+2. Удалить таблицу `user_roles` или оставить «на будущее»?
