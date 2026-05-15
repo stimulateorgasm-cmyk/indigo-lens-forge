@@ -18,7 +18,7 @@ import {
   YAxis,
 } from "recharts";
 import { LogOut, RefreshCw, Download, Search } from "lucide-react";
-import { getAdminStats, getAdminLeads } from "@/lib/admin.functions";
+import { getAdminStats, getAdminLeads, logoutAdmin, verifyAdminSession } from "@/lib/admin.functions";
 import { ADMIN_KEY_STORAGE } from "@/lib/admin-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,15 +54,17 @@ export const Route = createFileRoute("/admin")({
 function AdminPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const verifySession = useServerFn(verifyAdminSession);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!window.sessionStorage.getItem(ADMIN_KEY_STORAGE)) {
-      navigate({ to: "/login" });
-    } else {
-      setReady(true);
-    }
-  }, [navigate]);
+    verifySession({ data: undefined })
+      .then(() => setReady(true))
+      .catch(() => {
+        window.sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+        navigate({ to: "/login" });
+      });
+  }, [navigate, verifySession]);
 
   if (!ready) {
     return (
@@ -78,6 +80,7 @@ function AdminPage() {
 function Dashboard() {
   const fetchStats = useServerFn(getAdminStats);
   const fetchLeads = useServerFn(getAdminLeads);
+  const logout = useServerFn(logoutAdmin);
   const navigate = useNavigate();
 
   const [variant, setVariant] = useState<"all" | "top" | "bottom">("all");
@@ -106,6 +109,7 @@ function Dashboard() {
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(ADMIN_KEY_STORAGE);
     }
+    logout({ data: undefined }).catch(() => undefined);
     navigate({ to: "/login" });
   };
 

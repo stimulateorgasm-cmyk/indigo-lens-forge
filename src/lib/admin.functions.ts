@@ -1,27 +1,77 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createMiddleware } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
+import { deleteCookie, getCookie, getRequestHeader, setCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const ADMIN_SESSION_COOKIE = "indigo_admin_session";
+const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+
+function getAdminPassword() {
+  const expected = process.env.ADMIN_PASSWORD ?? "";
+  if (!expected) throw new Error("ADMIN_PASSWORD not configured");
+  return expected;
+}
+
+async function safeEqual(a: string, b: string) {
+  if (!a || a.length !== b.length) return false;
+  const { timingSafeEqual } = await import("crypto");
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
+async function getAdminSessionToken() {
+  const { createHmac } = await import("crypto");
+  return createHmac("sha256", getAdminPassword())
+    .update("indigo-admin-session:v1")
+    .digest("hex");
+}
+
+async function isValidAdminPassword(provided: string) {
+  return safeEqual(provided, getAdminPassword());
+}
+
+async function isValidAdminSession() {
+  return safeEqual(getCookie(ADMIN_SESSION_COOKIE) ?? "", await getAdminSessionToken());
+}
+
+async function setAdminSessionCookie() {
+  setCookie(ADMIN_SESSION_COOKIE, await getAdminSessionToken(), {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: ADMIN_SESSION_MAX_AGE,
+  });
+}
 
 const requireAdminPassword = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
     const provided = getRequestHeader("x-admin-key") ?? "";
-    const expected = process.env.ADMIN_PASSWORD ?? "";
-    if (!expected) throw new Error("ADMIN_PASSWORD not configured");
-    if (
-      provided.length === 0 ||
-      provided.length !== expected.length
-    ) {
-      throw new Error("Forbidden");
-    }
-    const { timingSafeEqual } = await import("crypto");
-    if (!timingSafeEqual(Buffer.from(provided), Buffer.from(expected))) {
+    if (!(await isValidAdminSession()) && !(await isValidAdminPassword(provided))) {
       throw new Error("Forbidden");
     }
     return next();
   },
 );
+
+export const loginAdmin = createServerFn({ method: "POST" })
+  .inputValidator((input) => z.object({ password: z.string().min(1).max(200) }).parse(input))
+  .handler(async ({ data }) => {
+    if (!(await isValidAdminPassword(data.password))) {
+      throw new Error("Forbidden");
+    }
+    await setAdminSessionCookie();
+    return { ok: true };
+  });
+
+export const verifyAdminSession = createServerFn({ method: "POST" })
+  .middleware([requireAdminPassword])
+  .handler(async () => ({ ok: true }));
+
+export const logoutAdmin = createServerFn({ method: "POST" }).handler(async () => {
+  deleteCookie(ADMIN_SESSION_COOKIE, { path: "/" });
+  return { ok: true };
+});
 
 export const getAdminStats = createServerFn({ method: "POST" })
   .middleware([requireAdminPassword])
