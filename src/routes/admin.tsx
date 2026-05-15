@@ -18,9 +18,8 @@ import {
   YAxis,
 } from "recharts";
 import { LogOut, RefreshCw, Download, Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { getAdminStats, getAdminLeads } from "@/lib/admin.functions";
+import { ADMIN_KEY_STORAGE } from "@/lib/admin-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,14 +52,19 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminPage() {
-  const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [loading, user, navigate]);
+    if (typeof window === "undefined") return;
+    if (!window.sessionStorage.getItem(ADMIN_KEY_STORAGE)) {
+      navigate({ to: "/login" });
+    } else {
+      setReady(true);
+    }
+  }, [navigate]);
 
-  if (loading || !user) {
+  if (!ready) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-sm text-muted-foreground">Загрузка…</div>
@@ -68,10 +72,10 @@ function AdminPage() {
     );
   }
 
-  return <Dashboard email={user.email ?? ""} />;
+  return <Dashboard />;
 }
 
-function Dashboard({ email }: { email: string }) {
+function Dashboard() {
   const fetchStats = useServerFn(getAdminStats);
   const fetchLeads = useServerFn(getAdminLeads);
   const navigate = useNavigate();
@@ -98,8 +102,10 @@ function Dashboard({ email }: { email: string }) {
       }),
   });
 
-  const onLogout = async () => {
-    await supabase.auth.signOut();
+  const onLogout = () => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+    }
     navigate({ to: "/login" });
   };
 
@@ -165,7 +171,6 @@ function Dashboard({ email }: { email: string }) {
             <h1 className="text-lg font-semibold">Аналитика</h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden text-xs text-muted-foreground md:inline">{email}</span>
             <Button size="sm" variant="outline" onClick={refresh}>
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
               Обновить
