@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster, toast } from "sonner";
 import { ADMIN_KEY_STORAGE } from "@/lib/admin-auth";
-import { getAdminStats } from "@/lib/admin.functions";
+import { loginAdmin } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -22,17 +22,26 @@ function LoginPage() {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const verify = useServerFn(getAdminStats);
+  const login = useServerFn(loginAdmin);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
     const key = url.searchParams.get("key");
     if (key) {
-      window.sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
       url.searchParams.delete("key");
       window.history.replaceState({}, "", url.toString());
-      navigate({ to: "/admin" });
+      setBusy(true);
+      login({ data: { password: key } })
+        .then(() => {
+          window.sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
+          navigate({ to: "/admin" });
+        })
+        .catch(() => {
+          window.sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+          toast.error("Ссылка устарела или пароль изменён");
+        })
+        .finally(() => setBusy(false));
       return;
     }
     if (window.sessionStorage.getItem(ADMIN_KEY_STORAGE)) {
@@ -44,9 +53,9 @@ function LoginPage() {
     e.preventDefault();
     if (!password) return;
     setBusy(true);
-    window.sessionStorage.setItem(ADMIN_KEY_STORAGE, password);
     try {
-      await verify({ data: undefined });
+      await login({ data: { password } });
+      window.sessionStorage.setItem(ADMIN_KEY_STORAGE, password);
       navigate({ to: "/admin" });
     } catch {
       window.sessionStorage.removeItem(ADMIN_KEY_STORAGE);
