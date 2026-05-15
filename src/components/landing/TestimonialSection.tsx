@@ -1,10 +1,10 @@
-import maximPhoto from "@/assets/testimonial-maxim.jpg";
+import maximPhoto from "@/assets/maxim-cherny.jpg";
 
 export function TestimonialSection() {
   return (
     <section id="testimonial" className="relative px-6 py-24 md:py-32">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-[auto_1fr] md:gap-16">
-        <div className="relative mx-auto md:mx-0">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-[1fr_auto] md:gap-16">
+        <div className="relative mx-auto md:mx-0 md:order-2">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -inset-8 -z-10 rounded-full"
