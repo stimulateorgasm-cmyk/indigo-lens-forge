@@ -1,25 +1,89 @@
-import { Star, ExternalLink, FileText } from "lucide-react";
+import { Star, ExternalLink } from "lucide-react";
 
 interface Article {
   id: number;
   title: string;
+  journal: string;
+  authors: string;
   journalUrl?: string;
-  pdfUrl?: string;
   featured?: boolean;
-  comingSoon?: boolean;
 }
 
 const articles: Article[] = [
-  { id: 1, title: "Психологическая устойчивость руководителя в условиях неопределённости" },
-  { id: 2, title: "Эмоциональное выгорание собственников бизнеса: модели и интервенции" },
-  { id: 3, title: "Адаптивность команды как фактор операционной прибыли" },
-  { id: 4, title: "Психосоматика стресса в управленческой деятельности" },
-  { id: 5, title: "Биопсихосоциальная модель в коучинге первых лиц", featured: true },
-  { id: 6, title: "Когнитивные искажения при принятии стратегических решений" },
-  { id: 7, title: "Личностные сценарии и архитектура организационных конфликтов" },
-  { id: 8, title: "Регуляция аффекта и долгосрочная эффективность лидера", featured: true },
-  { id: 9, title: "Травма и лидерство: невидимые ограничения роста" },
-  { id: 10, title: "Фобические реакции в управленческой практике", comingSoon: true },
+  {
+    id: 1,
+    title: "Биопсихосоциальный подход в психотерапии нарушения зрения",
+    journal: "Методология современной психологии",
+    authors: "Андрей Ковалев",
+    journalUrl: "http://zi-kozlov.ru/collection/mctp/1515-method-2-2024",
+  },
+  {
+    id: 2,
+    title: "Биопсихосоциодуховная модель психотерапии",
+    journal: "Социальный психолог",
+    authors: "Андрей Ковалев",
+    journalUrl: "http://zi-kozlov.ru/magazines/scp/1550-scp-1-2025",
+  },
+  {
+    id: 3,
+    title: "Духовные аспекты и подходы к психотерапии",
+    journal: "Методология современной психологии",
+    authors: "Андрей Ковалев",
+    journalUrl: "http://zi-kozlov.ru/collection/mctp/1548-method-1-2025",
+  },
+  {
+    id: 4,
+    title: "Метод биопсихосоциального программирования (БПСП)",
+    journal: "Социальный психолог",
+    authors: "Андрей Ковалев",
+    journalUrl: "http://zi-kozlov.ru/magazines/scp/1576-scp-3-2025",
+    featured: true,
+  },
+  {
+    id: 5,
+    title: "Психокоррекция эмоционального выгорания с применением БПСП",
+    journal: "Социальный психолог",
+    authors: "Андрей Ковалев",
+    journalUrl: "http://zi-kozlov.ru/magazines/scp/1516-scp-2-2024",
+  },
+  {
+    id: 6,
+    title: "Психологические ограничения, связанные с деньгами",
+    journal: "Социальный психолог",
+    authors: "Андрей Ковалев, Анна Ковалева",
+    journalUrl: "http://zi-kozlov.ru/magazines/scp/1533-scp-4-2024",
+  },
+  {
+    id: 7,
+    title: "Биопсихосоциальный подход в психотерапии расстройств пищевого поведения",
+    journal: "Социальный психолог",
+    authors: "Андрей Ковалев, Анна Ковалева",
+    journalUrl: "http://zi-kozlov.ru/magazines/scp/1533-scp-4-2024",
+  },
+  {
+    id: 8,
+    title: "Сущность биопсихосоциальной адаптации к стрессу",
+    journal: "Вестник интегративной психологии",
+    authors: "Андрей Ковалев",
+    journalUrl: "http://zi-kozlov.ru/magazines/vestnik/1517-vip-32-2024",
+  },
+  {
+    id: 9,
+    title:
+      "Результаты научных исследований по применению интегративного метода БПСП к коучинговым запросам",
+    journal:
+      "III Всероссийская научно-практическая конференция «Коучинг и наставничество: теория и практика»",
+    authors: "Андрей Ковалев",
+    journalUrl: "https://phsreda.com/ru/article/155032/discussion_platform",
+    featured: true,
+  },
+  {
+    id: 10,
+    title: "Биопсихосоциальная модель преодоления фобий",
+    journal: "Методология современной психологии",
+    authors: "Андрей Ковалев, Артем Ваксер",
+    journalUrl: "http://zi-kozlov.ru/collection/mctp/1614-method-2-2026",
+  },
 ];
 
 export function ResearchSection() {
@@ -59,25 +123,18 @@ export function ResearchSection() {
                         <Star className="h-3 w-3" /> ключевая
                       </span>
                     )}
-                    {a.comingSoon && (
-                      <span className="rounded-full bg-[color-mix(in_oklab,white_8%,transparent)] px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                        скоро
-                      </span>
-                    )}
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      {a.journal}
+                    </span>
                   </div>
                   <div className="mt-1 text-sm font-medium text-foreground md:text-base">
                     {a.title}
                   </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {a.authors}
+                  </div>
 
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-                    <button
-                      type="button"
-                      disabled
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,white_10%,transparent)] px-3 py-1 text-muted-foreground opacity-60"
-                      title="PDF скоро"
-                    >
-                      <FileText className="h-3.5 w-3.5" /> PDF скоро
-                    </button>
                     {a.journalUrl ? (
                       <a
                         href={a.journalUrl}
