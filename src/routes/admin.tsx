@@ -186,8 +186,11 @@ function Dashboard() {
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         {stats.isError && (
           <Card>
-            <CardContent className="py-6 text-sm text-destructive">
-              Нет доступа. Убедитесь, что вашему аккаунту назначена роль admin.
+            <CardContent className="flex items-center justify-between py-6 text-sm text-destructive">
+              <span>Сессия истекла или пароль изменён. Войдите заново.</span>
+              <Button size="sm" variant="outline" onClick={onLogout}>
+                На вход
+              </Button>
             </CardContent>
           </Card>
         )}
