@@ -1,11 +1,12 @@
 import { Mail, MessageCircle, Send } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { IndigoLogo } from "./IndigoLogo";
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-[color-mix(in_oklab,white_8%,transparent)] px-6 py-12">
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-10 md:grid-cols-3">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <IndigoLogo size={32} />
@@ -24,6 +25,8 @@ export function SiteFooter() {
             <nav className="flex flex-col gap-2 text-sm">
               <a href="#method" className="text-muted-foreground transition-colors hover:text-foreground">Метод</a>
               <a href="#research" className="text-muted-foreground transition-colors hover:text-foreground">Исследования</a>
+              <a href="#calculator" className="text-muted-foreground transition-colors hover:text-foreground">Калькулятор прибыли</a>
+              <a href="#faq" className="text-muted-foreground transition-colors hover:text-foreground">FAQ</a>
               <a href="#lead-top" className="text-muted-foreground transition-colors hover:text-foreground">Записаться</a>
             </nav>
           </div>
@@ -57,6 +60,18 @@ export function SiteFooter() {
                 Открытый чат Indigo Lab
               </a>
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground">Документы</h4>
+            <nav className="flex flex-col gap-2 text-sm">
+              <Link
+                to="/privacy"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Политика конфиденциальности
+              </Link>
+            </nav>
           </div>
         </div>
 
