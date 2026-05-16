@@ -171,6 +171,7 @@ const leadsInput = z.object({
   limit: z.number().min(1).max(500).optional(),
   utm_source: z.string().max(200).optional().nullable(),
   variant: z.enum(["top", "bottom"]).optional().nullable(),
+  status: z.enum(["new", "in_progress", "closed"]).optional().nullable(),
   search: z.string().max(200).optional().nullable(),
 });
 
@@ -181,13 +182,14 @@ export const getAdminLeads = createServerFn({ method: "POST" })
     let q = supabaseAdmin
       .from("leads")
       .select(
-        "id, name, contact, variant, utm_source, utm_medium, utm_campaign, referrer, landing_path, created_at",
+        "id, name, contact, variant, utm_source, utm_medium, utm_campaign, referrer, landing_path, created_at, status, notes",
       )
       .order("created_at", { ascending: false })
       .limit(data.limit ?? 200);
 
     if (data.utm_source) q = q.eq("utm_source", data.utm_source);
     if (data.variant) q = q.eq("variant", data.variant);
+    if (data.status) q = q.eq("status", data.status);
     if (data.search) {
       const s = data.search.replace(/[%_]/g, "");
       q = q.or(`name.ilike.%${s}%,contact.ilike.%${s}%`);
@@ -196,4 +198,85 @@ export const getAdminLeads = createServerFn({ method: "POST" })
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return { leads: rows ?? [] };
+  });
+
+export const updateLeadStatus = createServerFn({ method: "POST" })
+  .middleware([requireAdminPassword])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        status: z.enum(["new", "in_progress", "closed"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { error } = await supabaseAdmin
+      .from("leads")
+      .update({ status: data.status })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateLeadNotes = createServerFn({ method: "POST" })
+  .middleware([requireAdminPassword])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        notes: z.string().max(5000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { error } = await supabaseAdmin
+      .from("leads")
+      .update({ notes: data.notes })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getAdminEvents = createServerFn({ method: "POST" })
+  .middleware([requireAdminPassword])
+  .handler(async () => {
+    const now = new Date();
+    const since30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("analytics_events")
+      .select("event_name, props, created_at")
+      .gte("created_at", since30)
+      .limit(10000);
+    if (error) throw new Error(error.message);
+
+    const events = rows ?? [];
+    const byName: Record<string, number> = {};
+    const ctaBySource: Record<string, number> = {};
+    for (const e of events) {
+      byName[e.event_name] = (byName[e.event_name] ?? 0) + 1;
+      if (e.event_name === "cta_click") {
+        const src =
+          (e.props as Record<string, unknown> | null)?.source as string | undefined;
+        const key = src || "(unknown)";
+        ctaBySource[key] = (ctaBySource[key] ?? 0) + 1;
+      }
+    }
+    return {
+      totals: {
+        cta_click: byName.cta_click ?? 0,
+        calculator_use: byName.calculator_use ?? 0,
+        faq_open: byName.faq_open ?? 0,
+        video_play: byName.video_play ?? 0,
+        video_platform_click: byName.video_platform_click ?? 0,
+        download_pdf: byName.download_pdf ?? 0,
+      },
+      byName: Object.entries(byName)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count),
+      ctaBySource: Object.entries(ctaBySource)
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count),
+    };
   });
