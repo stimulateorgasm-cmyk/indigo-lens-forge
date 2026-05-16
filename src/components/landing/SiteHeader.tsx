@@ -40,14 +40,6 @@ export function SiteHeader() {
           </span>
         </a>
 
-        <nav
-          className="hidden items-center gap-7 text-sm text-muted-foreground md:flex"
-          style={{ letterSpacing: "0.02em" }}
-        >
-          <a className="story-link" href="#method">Метод</a>
-          <a className="story-link" href="#research">Исследования</a>
-        </nav>
-
         {/* Desktop CTA — compact gradient pill */}
         <a
           href="#lead-top"
