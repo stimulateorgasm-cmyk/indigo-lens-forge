@@ -4,6 +4,7 @@ import heroVideo from "@/assets/hero-loop.mp4.asset.json";
 import heroPoster from "@/assets/hero-poster.jpg";
 import { heroVideoSources, youtubeEmbedUrl } from "@/lib/video-sources";
 import { PlatformButton } from "./PlatformButton";
+import { track } from "@/lib/track";
 
 export function HeroVideo() {
   const [unmuted, setUnmuted] = useState(false);
@@ -61,6 +62,7 @@ export function HeroVideo() {
       // Поднимаем приоритет загрузки, когда пользователь явно слушает
       v.setAttribute("fetchpriority", "high");
       void v.play();
+      track("video_play", { surface: "hero_inline" });
     }
     setUnmuted(next);
   };

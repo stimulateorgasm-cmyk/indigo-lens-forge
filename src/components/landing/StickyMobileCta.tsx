@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { track } from "@/lib/track";
 
 export function StickyMobileCta() {
   const [visible, setVisible] = useState(false);
@@ -12,6 +13,7 @@ export function StickyMobileCta() {
   }, []);
 
   const onClick = () => {
+    track("cta_click", { source: "sticky" });
     document
       .getElementById("lead-top")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });

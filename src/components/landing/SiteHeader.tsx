@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { IndigoLogo } from "./IndigoLogo";
+import { track } from "@/lib/track";
 
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
@@ -43,6 +44,7 @@ export function SiteHeader() {
         {/* Desktop CTA — compact gradient pill */}
         <a
           href="#lead-top"
+          onClick={() => track("cta_click", { source: "header" })}
           className="group relative hidden h-10 items-center gap-2 overflow-hidden rounded-full px-5 text-sm font-medium tracking-tight text-primary-foreground transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex"
           style={{
             background: "var(--gradient-cta)",
@@ -60,6 +62,7 @@ export function SiteHeader() {
         <a
           href="#lead-top"
           aria-label="Записаться"
+          onClick={() => track("cta_click", { source: "header_mobile" })}
           className="grid h-9 w-9 place-items-center rounded-full text-primary-foreground transition-transform duration-300 hover:-translate-y-0.5 sm:hidden"
           style={{
             background: "var(--gradient-cta)",

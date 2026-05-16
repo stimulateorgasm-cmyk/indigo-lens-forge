@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/track";
 
 interface PlatformButtonProps {
   label: string;
@@ -56,6 +57,12 @@ export function PlatformButton({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() =>
+        track(
+          label === "Скачать" ? "download_pdf" : "video_platform_click",
+          { platform: label },
+        )
+      }
       className={cn(base, enabled, "overflow-hidden")}
     >
       {content}

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { HeroVideo } from "./HeroVideo";
+import { track } from "@/lib/track";
 
 const gradientAccent: React.CSSProperties = {
   background: "var(--gradient-cta)",
@@ -50,6 +51,7 @@ export function HeroSection() {
   }, []);
 
   const scrollToVideo = () => {
+    track("cta_click", { source: "hero_video" });
     document
       .getElementById("hero-video")
       ?.scrollIntoView({ behavior: "smooth", block: "center" });

@@ -6,6 +6,7 @@ import { submitLead } from "@/lib/lead.functions";
 import { getUtm } from "@/lib/utm";
 import { GradientButton } from "./GradientButton";
 import { FloatingLabelInput } from "./FloatingLabelInput";
+import { track } from "@/lib/track";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Укажите имя").max(80, "Слишком длинное имя"),
@@ -62,6 +63,7 @@ export function LeadFormSection({ id, variant = "top" }: LeadFormSectionProps) {
     }
     setErrors({});
     setSubmitting(true);
+    track("cta_click", { source: `lead_${variant}_submit` });
     try {
       const utm = getUtm();
       const result = await submit({
