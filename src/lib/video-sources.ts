@@ -1,6 +1,10 @@
 export interface VideoSources {
-  /** Direct MP4/WebM file (HTML5 <video>) */
+  /** Direct MP4/WebM file (HTML5 <video>) — fallback / full quality */
   mp4?: string;
+  /** Optimized 720p MP4 (desktop default) */
+  mp4_720?: string;
+  /** Optimized 480p MP4 (mobile / slow connections) */
+  mp4_480?: string;
   /** YouTube embed URL or video ID */
   youtube?: string;
   /** VK Video embed URL */
@@ -18,6 +22,8 @@ export interface VideoSources {
  */
 export const heroVideoSources: VideoSources = {
   mp4: "https://main.strah.fun/b2bvideo/videob2b.mp4",
+  mp4_720: "https://main.strah.fun/b2bvideo/videob2b-720p.mp4",
+  mp4_480: "https://main.strah.fun/b2bvideo/videob2b-480p.mp4",
   youtube: "https://youtu.be/pqlHc8UzZz0",
   rutube: "https://rutube.ru/play/embed/bfeefedd6c6cde66c0ce794a012164c4",
   cloud: "https://disk.yandex.ru/i/ZXPQeyiroMtG8A",
