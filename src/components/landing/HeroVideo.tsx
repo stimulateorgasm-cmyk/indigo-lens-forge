@@ -161,19 +161,22 @@ export function HeroVideo() {
         </div>
       </div>
 
-      {/* Reflection */}
+      {/* Subtle magenta glow under the frame */}
       <div
         aria-hidden="true"
-        className="pointer-events-none mx-auto mt-2 h-24 w-[92%] opacity-40"
+        className="pointer-events-none mx-auto -mt-6 h-12 w-[92%] opacity-50"
         style={{
           background:
-            "radial-gradient(60% 100% at 50% 0%, color-mix(in oklab, var(--magenta) 35%, transparent), transparent 70%)",
-          filter: "blur(20px)",
+            "radial-gradient(60% 100% at 50% 0%, color-mix(in oklab, var(--magenta) 30%, transparent), transparent 70%)",
+          filter: "blur(24px)",
         }}
       />
 
-      {/* Platform buttons */}
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+      {/* Platform buttons — действие-панель, прижата под видео */}
+      <div
+        className="relative mx-auto mt-3 flex flex-wrap items-center justify-center gap-2 rounded-2xl glass p-2 sm:flex-nowrap"
+        style={{ maxWidth: "min(100%, 760px)" }}
+      >
         <PlatformButton
           label="YouTube"
           href={sources.youtube}
