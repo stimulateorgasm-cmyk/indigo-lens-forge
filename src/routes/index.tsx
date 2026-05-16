@@ -9,6 +9,9 @@ import { AmplitudeSection } from "@/components/landing/AmplitudeSection";
 import { MethodAdvantagesSection } from "@/components/landing/MethodAdvantagesSection";
 import { TestimonialSection } from "@/components/landing/TestimonialSection";
 import { ResearchSection } from "@/components/landing/ResearchSection";
+import { HiddenProfitCalculator } from "@/components/landing/HiddenProfitCalculator";
+import { FaqSection } from "@/components/landing/FaqSection";
+import { StickyMobileCta } from "@/components/landing/StickyMobileCta";
 import { SiteFooter } from "@/components/landing/SiteFooter";
 import { useTrackPageVisit } from "@/hooks/useTrackPageVisit";
 
@@ -43,12 +46,21 @@ function Index() {
       <SiteHeader />
       <HeroSection />
       <LeadFormSection id="lead-top" variant="top" />
+      <div className="section-divider" />
       <AmplitudeSection />
+      <div className="section-divider" />
       <MethodAdvantagesSection />
+      <div className="section-divider" />
+      <HiddenProfitCalculator />
+      <div className="section-divider" />
       <TestimonialSection />
+      <div className="section-divider" />
       <ResearchSection />
+      <div className="section-divider" />
+      <FaqSection />
       <LeadFormSection id="lead-bottom" variant="bottom" />
       <SiteFooter />
+      <StickyMobileCta />
       <Toaster
         theme="dark"
         position="bottom-center"
