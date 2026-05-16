@@ -1,18 +1,31 @@
-import { useState } from "react";
-import { Play, Youtube, Film, PlaySquare, Cloud } from "lucide-react";
+import { useRef, useState } from "react";
+import { Volume2, VolumeX, Youtube, Film, PlaySquare, Cloud } from "lucide-react";
 import heroVideo from "@/assets/hero-loop.mp4.asset.json";
 import heroPoster from "@/assets/hero-poster.jpg";
 import { heroVideoSources, youtubeEmbedUrl } from "@/lib/video-sources";
 import { PlatformButton } from "./PlatformButton";
 
 export function HeroVideo() {
-  const [playing, setPlaying] = useState(false);
+  const [unmuted, setUnmuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const sources = heroVideoSources;
   const mp4 = sources.mp4 ?? heroVideo.url;
   const useIframe = !sources.mp4 && (!!sources.youtube || !!sources.vk || !!sources.rutube);
   const iframeSrc = sources.youtube
     ? youtubeEmbedUrl(sources.youtube)
     : sources.vk ?? sources.rutube;
+
+  const toggleSound = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    const next = !unmuted;
+    v.muted = !next;
+    if (next) {
+      v.controls = true;
+      void v.play();
+    }
+    setUnmuted(next);
+  };
 
   return (
     <div className="relative mx-auto w-full max-w-[1040px]">
@@ -45,7 +58,7 @@ export function HeroVideo() {
           }}
         >
           <div className="aspect-[16/9] w-full">
-            {playing && useIframe && iframeSrc ? (
+            {unmuted && useIframe && iframeSrc ? (
               <iframe
                 title="Indigo Lab — промо-видео"
                 src={iframeSrc}
@@ -55,49 +68,44 @@ export function HeroVideo() {
               />
             ) : (
               <video
-                key={playing ? "playing" : "idle"}
+                ref={videoRef}
                 className="h-full w-full object-cover"
                 src={mp4}
                 poster={heroPoster}
-                controls={playing}
-                autoPlay={playing}
-                muted={!playing}
-                loop={!playing}
+                controls={unmuted}
+                autoPlay
+                muted={!unmuted}
+                loop
                 playsInline
-                preload="metadata"
+                preload="auto"
                 aria-label="Промо-видео Indigo Lab"
               />
             )}
           </div>
 
-          {!playing && (
+          {!unmuted && (
             <button
               type="button"
-              onClick={() => setPlaying(true)}
-              className="absolute inset-0 grid place-items-center focus:outline-none"
-              aria-label="Смотреть видео"
+              onClick={toggleSound}
+              className="group absolute bottom-4 right-4 flex items-center gap-2 rounded-full glass-strong px-4 py-2.5 text-sm font-medium text-foreground/90 transition-transform duration-300 hover:scale-105 focus:outline-none"
+              style={{
+                boxShadow:
+                  "0 12px 40px -10px color-mix(in oklab, var(--magenta) 60%, transparent), inset 0 1px 0 color-mix(in oklab, white 30%, transparent)",
+              }}
+              aria-label="Включить звук"
             >
-              <span
-                className="pointer-events-none absolute inset-x-0 top-0 h-1/3 mix-blend-screen opacity-50"
-                style={{
-                  background:
-                    "linear-gradient(180deg, color-mix(in oklab, white 22%, transparent), transparent)",
-                }}
-              />
-              <span className="relative z-10 flex flex-col items-center gap-3">
-                <span
-                  className="grid h-28 w-28 place-items-center rounded-full glass-strong transition-transform duration-300 group-hover:scale-105"
-                  style={{
-                    boxShadow:
-                      "0 20px 60px -10px color-mix(in oklab, var(--magenta) 60%, transparent), inset 0 1px 0 color-mix(in oklab, white 30%, transparent)",
-                  }}
-                >
-                  <Play className="h-12 w-12 translate-x-0.5 fill-foreground text-foreground" />
-                </span>
-                <span className="text-sm font-medium uppercase tracking-[0.25em] text-foreground/90">
-                  Смотреть видео
-                </span>
-              </span>
+              <VolumeX className="h-4 w-4" />
+              <span className="uppercase tracking-[0.2em] text-xs">Включить звук</span>
+            </button>
+          )}
+          {unmuted && (
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="absolute bottom-4 right-4 grid h-10 w-10 place-items-center rounded-full glass-strong text-foreground/90 transition-transform duration-300 hover:scale-105 focus:outline-none"
+              aria-label="Выключить звук"
+            >
+              <Volume2 className="h-4 w-4" />
             </button>
           )}
         </div>
