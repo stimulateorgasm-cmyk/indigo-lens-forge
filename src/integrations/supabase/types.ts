@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: string
+          path: string | null
+          props: Json | null
+          session_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: string
+          path?: string | null
+          props?: Json | null
+          session_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: string
+          path?: string | null
+          props?: Json | null
+          session_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           contact: string
@@ -21,7 +51,9 @@ export type Database = {
           id: string
           landing_path: string | null
           name: string
+          notes: string | null
           referrer: string | null
+          status: string
           user_agent: string | null
           utm_campaign: string | null
           utm_content: string | null
@@ -36,7 +68,9 @@ export type Database = {
           id?: string
           landing_path?: string | null
           name: string
+          notes?: string | null
           referrer?: string | null
+          status?: string
           user_agent?: string | null
           utm_campaign?: string | null
           utm_content?: string | null
@@ -51,7 +85,9 @@ export type Database = {
           id?: string
           landing_path?: string | null
           name?: string
+          notes?: string | null
           referrer?: string | null
+          status?: string
           user_agent?: string | null
           utm_campaign?: string | null
           utm_content?: string | null

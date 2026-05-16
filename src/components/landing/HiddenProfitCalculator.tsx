@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { track } from "@/lib/track";
 
 const formatRub = (n: number) =>
   new Intl.NumberFormat("ru-RU", {
@@ -17,6 +18,8 @@ export function HiddenProfitCalculator() {
   const loss = useMemo(() => Math.round(team * salary * LOSS_RATE), [team, salary]);
 
   const scrollToForm = () => {
+    track("cta_click", { source: "calculator" });
+    track("calculator_use", { team, salary, loss });
     document
       .getElementById("lead-bottom")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });

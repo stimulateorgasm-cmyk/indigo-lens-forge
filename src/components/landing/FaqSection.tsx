@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { track } from "@/lib/track";
 
 const faqs = [
   {
@@ -48,7 +49,17 @@ export function FaqSection() {
           className="rounded-[24px] glass p-2 md:p-4"
           style={{ boxShadow: "var(--shadow-glass)" }}
         >
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion
+            type="single"
+            collapsible
+            className="w-full"
+            onValueChange={(value) => {
+              if (value) {
+                const idx = Number(value.replace("item-", ""));
+                track("faq_open", { index: idx, question: faqs[idx]?.q });
+              }
+            }}
+          >
             {faqs.map((item, i) => (
               <AccordionItem
                 key={i}
