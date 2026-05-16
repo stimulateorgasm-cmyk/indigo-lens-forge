@@ -56,7 +56,7 @@ const items: Item[] = [
 
 export function MethodAdvantagesSection() {
   return (
-    <section id="method" className="relative px-6 py-24 md:py-32">
+    <section id="method" className="relative px-6 py-16 md:py-20">
       <div className="mx-auto max-w-6xl">
         <div className="mb-12 max-w-3xl">
           <div className="mb-3 text-xs uppercase tracking-[0.3em] text-muted-foreground">

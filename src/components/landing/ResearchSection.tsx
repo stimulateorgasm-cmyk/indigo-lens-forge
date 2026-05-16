@@ -88,7 +88,7 @@ const articles: Article[] = [
 
 export function ResearchSection() {
   return (
-    <section id="research" className="relative px-6 py-24 md:py-32">
+    <section id="research" className="relative px-6 py-16 md:py-20">
       <div className="mx-auto max-w-6xl">
         <div className="mb-12 flex flex-col items-start gap-4">
           <span className="inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground">
