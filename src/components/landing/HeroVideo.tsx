@@ -9,8 +9,11 @@ export function HeroVideo() {
   const [unmuted, setUnmuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const sources = heroVideoSources;
-  const mp4 = sources.mp4 ?? heroVideo.url;
-  const useIframe = !sources.mp4 && (!!sources.youtube || !!sources.vk || !!sources.rutube);
+  const mp4Full = sources.mp4 ?? heroVideo.url;
+  const mp4_720 = sources.mp4_720;
+  const mp4_480 = sources.mp4_480;
+  const hasMp4 = !!(sources.mp4 || sources.mp4_720 || sources.mp4_480);
+  const useIframe = !hasMp4 && (!!sources.youtube || !!sources.vk || !!sources.rutube);
   const iframeSrc = sources.youtube
     ? youtubeEmbedUrl(sources.youtube)
     : sources.vk ?? sources.rutube;
@@ -22,6 +25,8 @@ export function HeroVideo() {
     v.muted = !next;
     if (next) {
       v.controls = true;
+      // Поднимаем приоритет загрузки, когда пользователь явно слушает
+      v.setAttribute("fetchpriority", "high");
       void v.play();
     }
     setUnmuted(next);
@@ -70,16 +75,25 @@ export function HeroVideo() {
               <video
                 ref={videoRef}
                 className="h-full w-full object-cover"
-                src={mp4}
                 poster={heroPoster}
                 controls={unmuted}
                 autoPlay
                 muted={!unmuted}
                 loop
                 playsInline
-                preload="auto"
+                preload="metadata"
+                disablePictureInPicture
+                disableRemotePlayback
+                // @ts-expect-error — нестандартный атрибут, поддержан Chromium
+                fetchpriority="low"
                 aria-label="Промо-видео Indigo Lab"
-              />
+              >
+                {mp4_480 && (
+                  <source src={mp4_480} type="video/mp4" media="(max-width: 768px)" />
+                )}
+                {mp4_720 && <source src={mp4_720} type="video/mp4" />}
+                <source src={mp4Full} type="video/mp4" />
+              </video>
             )}
           </div>
 

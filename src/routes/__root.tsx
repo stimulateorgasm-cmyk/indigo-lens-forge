@@ -101,6 +101,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "preconnect", href: "https://main.strah.fun", crossOrigin: "anonymous" },
+      { rel: "dns-prefetch", href: "https://main.strah.fun" },
     ],
   }),
   shellComponent: RootShell,
