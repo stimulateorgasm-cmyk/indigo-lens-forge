@@ -104,7 +104,7 @@ export function LeadFormSection({ id, variant = "top" }: LeadFormSectionProps) {
   };
 
   return (
-    <section id={id} className="relative px-6 py-14 md:py-18">
+    <section id={id} className="relative px-6 py-14 md:py-20">
       <div className="mx-auto max-w-xl">
         <div className="relative">
           <div
