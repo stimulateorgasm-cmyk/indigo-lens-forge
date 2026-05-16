@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX, Youtube, Film, PlaySquare, Cloud } from "lucide-react";
 import heroVideo from "@/assets/hero-loop.mp4.asset.json";
 import heroPoster from "@/assets/hero-poster.jpg";
@@ -8,6 +8,39 @@ import { PlatformButton } from "./PlatformButton";
 export function HeroVideo() {
   const [unmuted, setUnmuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+
+    let raf = 0;
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      // -1 (above viewport) → 0 (centered) → 1 (below)
+      const progress = (rect.top + rect.height / 2 - vh / 2) / (vh / 2);
+      const clamped = Math.max(-1, Math.min(1, progress));
+      const tilt = -clamped * 3; // up to 3deg
+      const ty = clamped * 6;
+      el.style.transform = `perspective(1400px) rotateX(${tilt}deg) translateY(${ty}px)`;
+      raf = 0;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   const sources = heroVideoSources;
   const mp4Full = sources.mp4 ?? heroVideo.url;
   const mp4_720 = sources.mp4_720;
@@ -47,12 +80,15 @@ export function HeroVideo() {
 
       {/* Frame */}
       <div
+        ref={frameRef}
         className="relative rounded-[42px] p-[10px] shadow-[0_60px_120px_-30px_rgba(0,0,0,0.7)]"
         style={{
           background:
             "linear-gradient(160deg, oklch(0.42 0.02 280), oklch(0.22 0.02 280) 40%, oklch(0.12 0.02 280))",
           boxShadow:
             "inset 0 0 0 1px color-mix(in oklab, white 14%, transparent), inset 0 1px 0 color-mix(in oklab, white 25%, transparent), 0 60px 120px -30px rgba(0,0,0,0.7)",
+          transition: "transform 0.1s linear",
+          willChange: "transform",
         }}
       >
         <div
