@@ -54,7 +54,7 @@ export function HiddenProfitCalculator() {
               value={team}
               onChange={setTeam}
               min={5}
-              max={500}
+              max={5000}
               step={1}
               format={(v) => `${v} чел.`}
             />
