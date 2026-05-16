@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX, Youtube, Film, PlaySquare, Cloud } from "lucide-react";
+import { Volume2, VolumeX, Youtube, Film, PlaySquare, Cloud, Maximize2 } from "lucide-react";
 import heroVideo from "@/assets/hero-loop.mp4.asset.json";
 import heroPoster from "@/assets/hero-poster.jpg";
 import { heroVideoSources, youtubeEmbedUrl } from "@/lib/video-sources";
@@ -54,17 +54,30 @@ export function HeroVideo() {
 
   const toggleSound = () => {
     const v = videoRef.current;
-    if (!v) return;
     const next = !unmuted;
-    v.muted = !next;
-    if (next) {
-      v.controls = true;
-      // Поднимаем приоритет загрузки, когда пользователь явно слушает
-      v.setAttribute("fetchpriority", "high");
-      void v.play();
-      track("video_play", { surface: "hero_inline" });
+    if (v) {
+      v.muted = !next;
+      if (next) {
+        v.controls = true;
+        v.setAttribute("fetchpriority", "high");
+        // Вызываем play() синхронно — сохраняем user gesture даже если метаданные ещё не загружены
+        void v.play().catch(() => {});
+        track("video_play", { surface: "hero_inline" });
+      }
     }
     setUnmuted(next);
+  };
+
+  const enterFullscreen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const v = videoRef.current as (HTMLVideoElement & {
+      webkitEnterFullscreen?: () => void;
+      webkitRequestFullscreen?: () => Promise<void>;
+    }) | null;
+    if (!v) return;
+    if (v.requestFullscreen) void v.requestFullscreen().catch(() => {});
+    else if (v.webkitRequestFullscreen) void v.webkitRequestFullscreen();
+    else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
   };
 
   return (
@@ -100,7 +113,7 @@ export function HeroVideo() {
             boxShadow: "inset 0 0 0 1px color-mix(in oklab, white 6%, transparent)",
           }}
         >
-          <div className="aspect-[16/9] w-full">
+          <div className="relative aspect-[16/9] w-full">
             {unmuted && useIframe && iframeSrc ? (
               <iframe
                 title="Indigo Lab — промо-видео"
@@ -133,32 +146,49 @@ export function HeroVideo() {
                 <source src={mp4Full} type="video/mp4" />
               </video>
             )}
+
+            {!unmuted && (
+              <button
+                type="button"
+                onClick={toggleSound}
+                aria-label="Включить звук и воспроизвести"
+                className="absolute inset-0 z-10 flex items-center justify-center focus:outline-none"
+              >
+                <span
+                  className="flex h-20 w-20 items-center justify-center rounded-full glass-strong text-foreground transition-transform duration-300 hover:scale-105 md:h-24 md:w-24"
+                  style={{
+                    boxShadow:
+                      "0 24px 60px -12px color-mix(in oklab, var(--magenta) 70%, transparent), inset 0 1px 0 color-mix(in oklab, white 35%, transparent)",
+                  }}
+                >
+                  <Volume2 className="h-8 w-8 md:h-10 md:w-10" />
+                </span>
+                <span className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full glass px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-foreground/90 md:text-xs">
+                  Нажмите, чтобы включить звук
+                </span>
+              </button>
+            )}
           </div>
 
-          {!unmuted && (
-            <button
-              type="button"
-              onClick={toggleSound}
-              className="group absolute bottom-3 right-3 flex items-center gap-2 rounded-full glass-strong text-foreground/90 transition-transform duration-300 hover:scale-105 focus:outline-none md:bottom-4 md:right-4 h-10 w-10 justify-center md:h-auto md:w-auto md:px-4 md:py-2.5"
-              style={{
-                boxShadow:
-                  "0 12px 40px -10px color-mix(in oklab, var(--magenta) 60%, transparent), inset 0 1px 0 color-mix(in oklab, white 30%, transparent)",
-              }}
-              aria-label="Включить звук"
-            >
-              <VolumeX className="h-4 w-4" />
-              <span className="hidden md:inline uppercase tracking-[0.2em] text-xs font-medium">Включить звук</span>
-            </button>
-          )}
           {unmuted && (
-            <button
-              type="button"
-              onClick={toggleSound}
-              className="absolute bottom-3 right-3 grid h-10 w-10 place-items-center rounded-full glass-strong text-foreground/90 transition-transform duration-300 hover:scale-105 focus:outline-none md:bottom-4 md:right-4"
-              aria-label="Выключить звук"
-            >
-              <Volume2 className="h-4 w-4" />
-            </button>
+            <div className="absolute bottom-3 right-3 z-20 flex items-center gap-2 md:bottom-4 md:right-4">
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="grid h-10 w-10 place-items-center rounded-full glass-strong text-foreground/90 transition-transform duration-300 hover:scale-105 focus:outline-none"
+                aria-label="Выключить звук"
+              >
+                <VolumeX className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={enterFullscreen}
+                className="grid h-10 w-10 place-items-center rounded-full glass-strong text-foreground/90 transition-transform duration-300 hover:scale-105 focus:outline-none"
+                aria-label="Развернуть на весь экран"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+            </div>
           )}
         </div>
       </div>
