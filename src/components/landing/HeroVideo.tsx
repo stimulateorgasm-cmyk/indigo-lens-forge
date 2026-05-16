@@ -9,7 +9,7 @@ export function HeroVideo() {
   const [playing, setPlaying] = useState(false);
   const sources = heroVideoSources;
   const mp4 = sources.mp4 ?? heroVideo.url;
-  const useIframe = !!sources.youtube || !!sources.vk || !!sources.rutube;
+  const useIframe = !sources.mp4 && (!!sources.youtube || !!sources.vk || !!sources.rutube);
   const iframeSrc = sources.youtube
     ? youtubeEmbedUrl(sources.youtube)
     : sources.vk ?? sources.rutube;
