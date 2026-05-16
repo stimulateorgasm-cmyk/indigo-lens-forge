@@ -48,7 +48,7 @@ export const trackEvent = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { error } = await supabaseAdmin.from("analytics_events").insert({
       event_name: data.event_name,
-      props: data.props ?? null,
+      props: (data.props ?? null) as never,
       session_id: data.session_id ?? null,
       path: data.path ?? null,
       user_agent: data.user_agent ?? null,
