@@ -5,7 +5,7 @@ import {
   Link,
 } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bar,
   BarChart,
@@ -17,12 +17,21 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { LogOut, RefreshCw, Download, Search } from "lucide-react";
-import { getAdminStats, getAdminLeads, logoutAdmin, verifyAdminSession } from "@/lib/admin.functions";
+import { LogOut, RefreshCw, Download, Search, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  getAdminStats,
+  getAdminLeads,
+  logoutAdmin,
+  verifyAdminSession,
+  getAdminEvents,
+  updateLeadStatus,
+  updateLeadNotes,
+} from "@/lib/admin.functions";
 import { ADMIN_KEY_STORAGE } from "@/lib/admin-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -80,24 +89,37 @@ function AdminPage() {
 function Dashboard() {
   const fetchStats = useServerFn(getAdminStats);
   const fetchLeads = useServerFn(getAdminLeads);
+  const fetchEvents = useServerFn(getAdminEvents);
+  const setStatus = useServerFn(updateLeadStatus);
+  const setNotes = useServerFn(updateLeadNotes);
   const logout = useServerFn(logoutAdmin);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [variant, setVariant] = useState<"all" | "top" | "bottom">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "new" | "in_progress" | "closed">("all");
   const [utmSource, setUtmSource] = useState("all");
   const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
 
   const stats = useQuery({
     queryKey: ["admin-stats"],
     queryFn: () => fetchStats({ data: undefined }),
   });
 
+  const events = useQuery({
+    queryKey: ["admin-events"],
+    queryFn: () => fetchEvents({ data: undefined }),
+  });
+
   const leads = useQuery({
-    queryKey: ["admin-leads", variant, utmSource, search],
+    queryKey: ["admin-leads", variant, statusFilter, utmSource, search],
     queryFn: () =>
       fetchLeads({
         data: {
           variant: variant === "all" ? null : variant,
+          status: statusFilter === "all" ? null : statusFilter,
           utm_source: utmSource === "all" ? null : utmSource,
           search: search || null,
           limit: 200,
@@ -116,6 +138,7 @@ function Dashboard() {
   const refresh = () => {
     stats.refetch();
     leads.refetch();
+    events.refetch();
   };
 
   const onExport = () => {
@@ -163,6 +186,30 @@ function Dashboard() {
   }, [stats.data]);
 
   const t = stats.data?.totals;
+  const ev = events.data?.totals;
+
+  const onChangeStatus = async (id: string, status: "new" | "in_progress" | "closed") => {
+    try {
+      await setStatus({ data: { id, status } });
+      queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
+      toast.success("Статус обновлён");
+    } catch (err) {
+      console.error(err);
+      toast.error("Не удалось обновить статус");
+    }
+  };
+
+  const saveNotes = async (id: string) => {
+    const value = noteDrafts[id] ?? "";
+    try {
+      await setNotes({ data: { id, notes: value } });
+      queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
+      toast.success("Заметка сохранена");
+    } catch (err) {
+      console.error(err);
+      toast.error("Не удалось сохранить заметку");
+    }
+  };
 
   return (
     <main className="min-h-screen bg-background text-foreground">
