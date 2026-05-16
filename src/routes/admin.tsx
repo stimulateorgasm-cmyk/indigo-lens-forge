@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   createFileRoute,
   useNavigate,
@@ -461,9 +461,8 @@ function Dashboard() {
                     const isOpen = expanded === l.id;
                     const draft = noteDrafts[l.id] ?? l.notes ?? "";
                     return (
-                      <>
+                      <Fragment key={l.id}>
                         <TableRow
-                          key={l.id}
                           className="cursor-pointer"
                           onClick={() => {
                             setExpanded(isOpen ? null : l.id);
@@ -539,7 +538,7 @@ function Dashboard() {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })}
                   {leads.data && leads.data.leads.length === 0 && (
