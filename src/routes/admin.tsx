@@ -334,6 +334,62 @@ function Dashboard() {
           </Card>
         </div>
 
+        {/* Events / Активность */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Активность за 30 дней</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <MiniKpi label="Кликов CTA" value={ev?.cta_click ?? "—"} />
+              <MiniKpi label="Калькулятор" value={ev?.calculator_use ?? "—"} />
+              <MiniKpi label="Открытий FAQ" value={ev?.faq_open ?? "—"} />
+              <MiniKpi label="Видео: play" value={ev?.video_play ?? "—"} />
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div>
+                <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  Источники CTA-кликов
+                </div>
+                <div className="h-56 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={events.data?.ctaBySource ?? []}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis dataKey="source" stroke="var(--muted-foreground)" fontSize={11} />
+                      <YAxis stroke="var(--muted-foreground)" fontSize={11} />
+                      <Tooltip
+                        contentStyle={{
+                          background: "var(--card)",
+                          border: "1px solid var(--border)",
+                          borderRadius: 8,
+                          fontSize: 12,
+                        }}
+                      />
+                      <Bar dataKey="count" fill="#ec4899" name="Клики" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div>
+                <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  Все события
+                </div>
+                <div className="space-y-2">
+                  {(events.data?.byName ?? []).map((row) => (
+                    <div key={row.name} className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{row.name}</span>
+                      <span className="font-semibold">{row.count}</span>
+                    </div>
+                  ))}
+                  {(events.data?.byName ?? []).length === 0 && (
+                    <div className="text-sm text-muted-foreground">Событий пока нет</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Leads table */}
         <Card>
           <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -356,6 +412,20 @@ function Dashboard() {
                   <SelectItem value="bottom">Снизу</SelectItem>
                 </SelectContent>
               </Select>
+              <Select
+                value={statusFilter}
+                onValueChange={(v) =>
+                  setStatusFilter(v as "all" | "new" | "in_progress" | "closed")
+                }
+              >
+                <SelectTrigger className="h-9 w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все статусы</SelectItem>
+                  <SelectItem value="new">Новые</SelectItem>
+                  <SelectItem value="in_progress">В работе</SelectItem>
+                  <SelectItem value="closed">Закрытые</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={utmSource} onValueChange={setUtmSource}>
                 <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -376,39 +446,105 @@ function Dashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-8" />
                     <TableHead>Дата</TableHead>
                     <TableHead>Имя</TableHead>
                     <TableHead>Контакт</TableHead>
+                    <TableHead>Статус</TableHead>
                     <TableHead>Форма</TableHead>
                     <TableHead>UTM</TableHead>
                     <TableHead>Реферер</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(leads.data?.leads ?? []).map((l) => (
-                    <TableRow key={l.id}>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                        {new Date(l.created_at).toLocaleString("ru-RU", {
-                          dateStyle: "short",
-                          timeStyle: "short",
-                        })}
-                      </TableCell>
-                      <TableCell className="font-medium">{l.name}</TableCell>
-                      <TableCell className="text-sm">{l.contact}</TableCell>
-                      <TableCell>
-                        {l.variant && <Badge variant="secondary">{l.variant}</Badge>}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {[l.utm_source, l.utm_medium, l.utm_campaign].filter(Boolean).join(" / ") || "—"}
-                      </TableCell>
-                      <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
-                        {l.referrer ?? "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {(leads.data?.leads ?? []).map((l) => {
+                    const isOpen = expanded === l.id;
+                    const draft = noteDrafts[l.id] ?? l.notes ?? "";
+                    return (
+                      <>
+                        <TableRow
+                          key={l.id}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setExpanded(isOpen ? null : l.id);
+                            if (!isOpen && noteDrafts[l.id] === undefined) {
+                              setNoteDrafts((s) => ({ ...s, [l.id]: l.notes ?? "" }));
+                            }
+                          }}
+                        >
+                          <TableCell className="text-muted-foreground">
+                            {isOpen ? (
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            ) : (
+                              <ChevronRight className="h-3.5 w-3.5" />
+                            )}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                            {new Date(l.created_at).toLocaleString("ru-RU", {
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            })}
+                          </TableCell>
+                          <TableCell className="font-medium">{l.name}</TableCell>
+                          <TableCell className="text-sm">{l.contact}</TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Select
+                              value={l.status ?? "new"}
+                              onValueChange={(v) =>
+                                onChangeStatus(l.id, v as "new" | "in_progress" | "closed")
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-32 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="new">Новая</SelectItem>
+                                <SelectItem value="in_progress">В работе</SelectItem>
+                                <SelectItem value="closed">Закрыта</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            {l.variant && <Badge variant="secondary">{l.variant}</Badge>}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {[l.utm_source, l.utm_medium, l.utm_campaign].filter(Boolean).join(" / ") || "—"}
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+                            {l.referrer ?? "—"}
+                          </TableCell>
+                        </TableRow>
+                        {isOpen && (
+                          <TableRow key={`${l.id}-notes`} className="bg-muted/30">
+                            <TableCell />
+                            <TableCell colSpan={7} className="py-4">
+                              <div className="space-y-2">
+                                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                                  Заметка
+                                </div>
+                                <Textarea
+                                  value={draft}
+                                  onChange={(e) =>
+                                    setNoteDrafts((s) => ({ ...s, [l.id]: e.target.value }))
+                                  }
+                                  placeholder="Договорились о звонке в среду, прислать КП…"
+                                  className="min-h-[80px] text-sm"
+                                />
+                                <div className="flex justify-end">
+                                  <Button size="sm" onClick={() => saveNotes(l.id)}>
+                                    Сохранить
+                                  </Button>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    );
+                  })}
                   {leads.data && leads.data.leads.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
                         Заявок пока нет
                       </TableCell>
                     </TableRow>
@@ -433,6 +569,15 @@ function KpiCard({ label, value, hint }: { label: string; value: number | string
         {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
       </CardContent>
     </Card>
+  );
+}
+
+function MiniKpi({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card/50 px-4 py-3">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-1 text-xl font-semibold">{value}</div>
+    </div>
   );
 }
 
