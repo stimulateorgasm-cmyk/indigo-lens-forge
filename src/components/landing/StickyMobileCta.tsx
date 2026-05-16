@@ -32,7 +32,7 @@ export function StickyMobileCta() {
       <button
         type="button"
         onClick={onClick}
-        className="pointer-events-auto h-13 w-full rounded-full cta-gradient text-primary-foreground text-sm font-medium tracking-tight"
+        className="pointer-events-auto w-full rounded-full cta-gradient text-primary-foreground text-sm font-medium tracking-tight"
         style={{
           height: 56,
           boxShadow:
