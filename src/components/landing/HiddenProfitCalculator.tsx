@@ -114,13 +114,32 @@ interface SliderProps {
 }
 
 function Slider({ label, value, onChange, min, max, step, format }: SliderProps) {
+  const clamp = (n: number) => Math.min(max, Math.max(min, n));
   return (
     <label className="block">
-      <div className="flex items-baseline justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
           {label}
         </span>
-        <span className="text-base font-medium text-foreground">{format(value)}</span>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            inputMode="numeric"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === "") return;
+              const n = Number(raw);
+              if (!Number.isFinite(n)) return;
+              onChange(clamp(Math.round(n)));
+            }}
+            className="w-24 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-right text-sm font-medium text-foreground outline-none focus:border-[var(--magenta)] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
+          <span className="hidden text-xs text-muted-foreground sm:inline">{format(value)}</span>
+        </div>
       </div>
       <input
         type="range"
