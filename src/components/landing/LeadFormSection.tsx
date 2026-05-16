@@ -28,7 +28,7 @@ interface LeadFormSectionProps {
 export function LeadFormSection({ id, variant = "top" }: LeadFormSectionProps) {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [consent, setConsent] = useState(false);
+  const [consent, setConsent] = useState(true);
   const submit = useServerFn(submitLead);
 
   const eyebrow =

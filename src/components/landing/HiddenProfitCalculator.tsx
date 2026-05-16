@@ -90,7 +90,7 @@ export function HiddenProfitCalculator() {
               onClick={scrollToForm}
               className="mt-6 inline-flex items-center gap-2 rounded-full glass px-5 py-3 text-sm font-medium text-foreground/90 transition-transform duration-300 hover:-translate-y-0.5"
             >
-              Получить разбор
+              Записаться на сессию
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
