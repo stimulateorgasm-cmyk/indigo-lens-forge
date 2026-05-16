@@ -94,12 +94,12 @@ export function HeroSection() {
           style={{ animationDelay: "200ms" }}
         >
           Программа для собственников и руководителей, превращающая внутреннее{" "}
-          <span className="italic text-foreground/90" style={gradientAccent}>
+          <span className="italic text-foreground/90 whitespace-nowrap" style={gradientAccent}>
             напряжение команды
           </span>{" "}
-          в измеримый{" "}
-          <span className="italic text-foreground/90" style={gradientAccent}>
-            рост бизнеса
+          в{" "}
+          <span className="italic text-foreground/90 whitespace-nowrap" style={gradientAccent}>
+            измеримый рост бизнеса
           </span>
           .
         </p>
