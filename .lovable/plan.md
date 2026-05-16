@@ -1,38 +1,22 @@
-## Что сделаем
+## План: встроить видео
 
-Заменим текущую авторизацию через Supabase Auth (email + Google OAuth + таблица `user_roles`) на простой ввод пароля — как в проекте Healthful Path Conference.
+Обновлю `src/lib/video-sources.ts` — пропишу все 4 источника:
 
-## Почему /login сейчас 404
+- **mp4** (основной плеер в hero): `https://main.strah.fun/b2bvideo/videob2b.mp4`
+- **youtube**: `https://youtu.be/pqlHc8UzZz0` → конвертируется в embed автоматически
+- **rutube**: `https://rutube.ru/play/embed/bfeefedd6c6cde66c0ce794a012164c4`
+- **cloud** (кнопка «Скачать»): `https://disk.yandex.ru/i/ZXPQeyiroMtG8A`
 
-На опубликованном `b2b.indigolab.pro` ещё крутится старая сборка (без роутов `/login` и `/admin`). После того как переделаем вход и опубликуем заново — 404 уйдёт. В превью `id-preview--*.lovable.app` страница уже доступна.
+### Поведение
 
-## План
+- В iPad-фрейме на главной будет проигрываться MP4 с вашего сервера (`main.strah.fun`). Если сервер отдаёт правильные CORS/Range-заголовки — заработает сразу.
+- Под видео автоматически активируются кнопки **YouTube**, **Rutube** и **Скачать** (Яндекс.Диск) — они откроются в новой вкладке.
+- VK Видео не указано — кнопка останется неактивной.
 
-1. **Секрет `ADMIN_PASSWORD`** — добавим через Lovable Cloud secrets, спросим у вас значение.
+### Один риск
 
-2. **`/login`** — оставим один input «Пароль». При сабмите кладём пароль в `sessionStorage` (`indigo_admin_key`) и редиректим в `/admin`. Никаких email/Google/Supabase Auth.
+Если `main.strah.fun` не отдаёт заголовок `Accept-Ranges: bytes` или блокирует воспроизведение по CORS — видео не запустится в hero. В таком случае есть два варианта:
+1. поправить настройки nginx/apache на вашем сервере,
+2. как fallback переключить hero-плеер на YouTube-iframe.
 
-3. **`/admin`** — вместо `useAuth()` (Supabase сессия) проверяем наличие ключа в `sessionStorage`. Если нет — редирект на `/login`. Кнопка «Выйти» чистит ключ.
-
-4. **Server functions (`src/lib/admin.functions.ts`)** — убираем `requireSupabaseAuth` и `ensureAdmin(userId)`. Вместо этого новый middleware `requireAdminPassword`: читает заголовок `Authorization: Bearer <key>` и сравнивает с `process.env.ADMIN_PASSWORD` через `timingSafeEqual`. Клиент шлёт ключ через кастомный `functionMiddleware` (читает из `sessionStorage`).
-
-5. **Чистка** — удаляем теперь ненужное:
-   - `src/hooks/useAuth.ts`
-   - таблицу `user_roles` и функцию `has_role()` (миграцией `DROP`)
-   - привязку `attachSupabaseAuth` в `src/start.ts` заменяем на новый attacher с админ-паролем
-   - `supabase--configure_social_auth` Google остаётся включённым на бэке, но не используется — можно отключить позже
-
-6. **Lead-форма и трекинг визитов** — не трогаем. Они пишутся анонимно, RLS уже разрешает `INSERT` всем.
-
-7. **Публикация** — после правок вы публикуете, и `b2b.indigolab.pro/login` начинает работать.
-
-## Технические детали
-
-- Сравнение пароля: `crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(process.env.ADMIN_PASSWORD!))` с защитой от несовпадения длин.
-- Поддержим вход по URL `?key=...` (как в РПП): если параметр есть — кладём в storage и сразу чистим из URL.
-- Тип контекста серверных функций: `{ adminKey: string }` — `userId` больше не нужен.
-
-## Открытые вопросы
-
-1. Какой пароль ставим в `ADMIN_PASSWORD`? (придумайте, либо сгенерирую случайный)
-2. Удалить таблицу `user_roles` или оставить «на будущее»?
+После публикации сразу проверю в превью, что MP4 грузится.

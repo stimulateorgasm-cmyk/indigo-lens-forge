@@ -17,11 +17,10 @@ export interface VideoSources {
  * когда соответствующий ключ заполнен.
  */
 export const heroVideoSources: VideoSources = {
-  // mp4: "...",
-  // youtube: "https://www.youtube.com/embed/...",
-  // vk: "https://vk.com/video_ext.php?...",
-  // rutube: "https://rutube.ru/play/embed/...",
-  // cloud: "https://disk.yandex.ru/i/...",
+  mp4: "https://main.strah.fun/b2bvideo/videob2b.mp4",
+  youtube: "https://youtu.be/pqlHc8UzZz0",
+  rutube: "https://rutube.ru/play/embed/bfeefedd6c6cde66c0ce794a012164c4",
+  cloud: "https://disk.yandex.ru/i/ZXPQeyiroMtG8A",
 };
 
 export function youtubeEmbedUrl(input: string): string {
